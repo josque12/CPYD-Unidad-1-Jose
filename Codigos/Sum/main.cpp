@@ -2,18 +2,19 @@
 #include <thread>
 #include <random>
 #include <vector>
-
-std::random_device rd;
-std::mt19937 gen(rd());
-std::uniform_int_distribution<int> dist(1, 1000);
+#include <algorithm>
 
 class Sum {
 private:
     int threadId;
     int total = 0;
+    std::mt19937 gen;
+    std::uniform_int_distribution<int> dist;
 
 public:
-    Sum(int threadId) : threadId(threadId) {}
+    Sum(int threadId)
+        : threadId(threadId), gen(std::random_device{}()), dist(1, 1000) {}
+
 
     void computeSum() {
         for (int i = 0; i < 100; i++) {
@@ -42,15 +43,12 @@ int main() {
     for (const auto& s : sums)
         std::cout << "Thread " << s.getThreadId() << ": " << s.getTotal() << std::endl;
 
-    int idx = 0;
 
-    for (int i = 1; i < sums.size(); ++i) {
-        if (sums[i].getTotal() > sums[idx].getTotal())
-            idx = i;
-    }
+    std::sort(sums.begin(), sums.end(),
+        [](const Sum& a, const Sum& b) { return a.getTotal() > b.getTotal(); });
 
-    std::cout << "Max value is " << sums[idx].getTotal()
-              << " Thread " << sums[idx].getThreadId() << std::endl;
+    std::cout << "Max value is " << sums[0].getTotal()
+              << " Thread " << sums[0].getThreadId() << std::endl;
 
     return 0;
 }
